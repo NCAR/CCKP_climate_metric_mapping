@@ -8,35 +8,35 @@ echo "Climate Risk Mapper - Example Usage"
 echo "==============================================="
 
 # Create output directory
-mkdir -p ./example_outputs
+mkdir -p ./cckp_outputs
 
 echo ""
 echo "Example 1: Basic usage with r95ptot"
 echo "-----------------------------------"
-python climate_risk_mapper.py r95ptot --output-dir ./example_outputs
+python climate_risk_mapper.py r95ptot --output-dir ./cckp_outputs
 
 echo ""
 echo "Example 2: Temperature maximum with custom reference period"
 echo "-----------------------------------------------------------"
 python climate_risk_mapper.py tasmax \
   --reference-period 1981 2010 \
-  --output-dir ./example_outputs
+  --output-dir ./cckp_outputs
 
 echo ""
 echo "Example 3: Precipitation without significance stippling"
 echo "-------------------------------------------------------"
 python climate_risk_mapper.py pr \
   --no-significance \
-  --output-dir ./example_outputs
+  --output-dir ./cckp_outputs
 
 echo ""
 echo "Example 4: Using a local file (if available)"
 echo "--------------------------------------------"
-# python climate_risk_mapper.py r95p \
-#   --url /path/to/local/file.nc \
-#   --output-dir ./example_outputs
+ python climate_risk_mapper.py r95p \
+   --url /path/to/local/file.nc \
+   --output-dir ./cckp_outputs
 
 echo ""
 echo "==============================================="
-echo "Examples complete! Check ./example_outputs/"
+echo "Examples complete! Check ./cckp_outputs/"
 echo "==============================================="

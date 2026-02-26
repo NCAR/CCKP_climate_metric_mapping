@@ -79,7 +79,7 @@ VARIABLE_CONFIG = {
         'trend_units': 'm/s/year'
     },
     'spei12': {
-        'long_name': 'Standardized Precipitation Evapotranspiration Index\nPearson distribution), 12-month',
+        'long_name': 'Standardized Precipitation Evapotranspiration Index\n(Pearson distribution), 12-month',
         'units': 'dimensionless index',
         'cmap_mean': 'Spectral',
         'cmap_extreme': 'Spectral',
