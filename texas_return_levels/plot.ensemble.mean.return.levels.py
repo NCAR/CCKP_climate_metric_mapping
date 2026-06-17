@@ -53,7 +53,7 @@ RETURN_PERIODS = [10, 25, 50, 100]    # one figure each (must be in file)
 # Color limits. Matches the calc script's fixed range by default. If a given
 # return period clips badly at this range, set PER_RP_AUTOSCALE = True to let
 # each figure self-scale to its own ensemble-mean min/max instead.
-VMIN, VMAX = 50, 300
+VMIN, VMAX = 50, 275
 PER_RP_AUTOSCALE = False
 COLORS = ['darkorange', 'indianred', 'maroon']  # warming-level annotation boxes
 
