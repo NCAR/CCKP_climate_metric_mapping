@@ -2,3 +2,8 @@ IMPLEMENTATION_NOTES.md
 QUICK_START.md
 
 example_outputs/*
+__pycache__/
+*.pyc
+cmip6/cmip6_model_intermediates/
+cmip6/cckp_cache/
+cmip6/stdout-*
