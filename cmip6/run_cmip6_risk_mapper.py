@@ -18,6 +18,18 @@ Only generate mid-century (skip end-century), custom output/cache dirs:
     python3 run_cmip6_risk_mapper.py --variables tas --periods mid-century \
         --output-dir ./risk_maps --cache-dir ./cckp_cache
 
+Use the fixed vmin/vmax from cmip6_variable_config.py instead of auto limits:
+    python3 run_cmip6_risk_mapper.py --variables tas --limits config
+
+Color limits (--limits auto, default) are set PER FIGURE from land-only
+5th-95th percentiles (cmip6_plot_limits.py): the median-panel range from
+that figure's historical + future fields, the change-panel range from its
+change field. No pooling across scenarios/periods, so ranges differ between
+figures. The land mask is used only for the limits; the data written to
+NetCDF is not masked. --limits auto needs regionmask's Natural Earth land
+polygons; fetch them once from a node with internet access:
+    python3 -c "import regionmask; regionmask.defined_regions.natural_earth_v5_0_0.land_50"
+
 See --help for all options.
 """
 
@@ -26,9 +38,12 @@ import sys
 import traceback
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 from cmip6_loader import calculate_period_mean, STANDARD_PERIODS
 from cmip6_risk_mapper import calculate_change, create_cmip6_risk_map, create_cmip6_netcdf
 from cmip6_variable_config import CMIP6_VARIABLE_CONFIG
+from cmip6_plot_limits import median_limits, change_limits
 
 # Human-readable labels for each future period, used in plot titles/filenames
 FUTURE_PERIOD_LABELS = {
@@ -38,7 +53,7 @@ FUTURE_PERIOD_LABELS = {
 
 
 def run_one(variable, scenario, future_period_key, output_dir, cache_dir,
-            historical_cache=None):
+            historical_cache=None, limits="auto"):
     """
     Run the full pipeline for one (variable, scenario, future_period)
     combination: load historical + future means, compute change, write
@@ -59,6 +74,9 @@ def run_one(variable, scenario, future_period_key, output_dir, cache_dir,
     historical_cache : dict, optional
         Dict of {(variable, scenario): historical_field} to avoid
         recomputing the historical blend once per future period
+    limits : {'auto', 'config'}
+        'auto': per-figure land-only percentile limits (cmip6_plot_limits.py).
+        'config': fixed vmin/vmax from CMIP6_VARIABLE_CONFIG.
 
     Returns
     -------
@@ -95,14 +113,24 @@ def run_one(variable, scenario, future_period_key, output_dir, cache_dir,
     fig_path = output_dir / f"{tag}_map.png"
     nc_path = output_dir / f"{tag}.nc"
 
-    create_cmip6_risk_map(
+    median_lims = change_lims = None
+    if limits == "auto":
+        median_lims = median_limits([historical, future], config)
+        change_lims = change_limits(change, config)
+        print(f"  Median color range (land 5-95th pct): {median_lims}")
+        print(f"  Change color range (land 5-95th pct): {change_lims}")
+
+    fig = create_cmip6_risk_map(
         historical, future, change, config,
         output_path=str(fig_path),
         future_label=future_label,
         historical_period=STANDARD_PERIODS["historical"],
         future_period=STANDARD_PERIODS[future_period_key],
         scenario=scenario,
+        median_lims=median_lims,
+        change_lims=change_lims,
     )
+    plt.close(fig)
 
     create_cmip6_netcdf(
         historical, future, change, config,
@@ -126,6 +154,7 @@ Examples:
   python3 run_cmip6_risk_mapper.py
   python3 run_cmip6_risk_mapper.py --variables tas tasmax tasmin --scenarios ssp245 ssp585
   python3 run_cmip6_risk_mapper.py --variables tas --periods mid-century
+  python3 run_cmip6_risk_mapper.py --variables tas --limits config
         """
     )
     parser.add_argument('--variables', nargs='+', default=['tas'],
@@ -140,6 +169,10 @@ Examples:
                          help='Output directory for figures/NetCDFs (default: ./cmip6_risk_maps)')
     parser.add_argument('--cache-dir', default='./cckp_cache',
                          help='Cache directory for downloaded CCKP files (default: ./cckp_cache)')
+    parser.add_argument('--limits', choices=['auto', 'config'], default='auto',
+                         help="Color limits: 'auto' = per-figure land-only 5-95th "
+                              "percentiles (default); 'config' = fixed vmin/vmax "
+                              "from cmip6_variable_config.py")
 
     args = parser.parse_args()
 
@@ -164,6 +197,7 @@ Examples:
     print(f"Periods:   {', '.join(args.periods)}")
     print(f"Output dir: {output_dir}")
     print(f"Cache dir:  {cache_dir}")
+    print(f"Limits:     {args.limits}")
     print(f"Total jobs: {len(jobs)}")
     print("=" * 70)
 
@@ -180,7 +214,7 @@ Examples:
         print("-" * 70)
         try:
             run_one(variable, scenario, period, output_dir, cache_dir,
-                    historical_cache=historical_cache)
+                    historical_cache=historical_cache, limits=args.limits)
             succeeded.append(tag)
         except Exception as e:
             print(f"  FAILED: {type(e).__name__}: {e}")
