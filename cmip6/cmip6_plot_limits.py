@@ -1,26 +1,40 @@
 #!/usr/bin/env python3
 """
-CMIP6 Plot Limits and Land Masking
-====================================
-Helpers used by build_ensemble_medians.py to (1) mask ensemble-median fields
-to land and (2) derive color-scale limits from the land-only values.
+CMIP6 Plot Color Limits (land-only percentiles)
+=================================================
+Derives color-scale limits for the Stage 2 ensemble-median maps
+(build_ensemble_medians.py) from LAND values only.
+
+The land mask is used ONLY to choose the color range. It is never applied
+to the fields that get plotted or written to NetCDF: those stay global
+(land and ocean). The plots hide the ocean visually with cfeature.OCEAN.
 
 Limit rules
 -----------
 Median panels (historical / mid-century / end-century):
     ONE range per variable, from the 5th-95th percentile of land values
-    pooled over the historical field and every scenario/period median field.
-    If the variable's config has 'median_floor_zero': True, the lower
-    limit is pinned to 0. If it has 'median_symmetric': True, the range is
-    instead -L to +L with L = max(|p_lo|, |p_hi|), centered on 0.
+    pooled over the historical field and all 8 scenario/period future
+    median fields (4 SSPs x 2 periods), so limits do not depend on which
+    scenarios a given run writes out.
+    Shape (see resolve_median_shape):
+        floor zero  ->  0 to p95
+        symmetric   ->  -L to +L, L = max(|p5|, |p95|)
+        default     ->  p5 to p95
 
 Change panels:
-    Set PER PLOT, shape controlled by config['change_sign']:
+    Set PER PLOT, shape from resolve_change_sign:
         'positive'  ->  0 to p95
         'negative'  ->  p5 to 0
-        absent      ->  symmetric, +/- max(|p5|, |p95|)
+        None        ->  symmetric, +/- max(|p5|, |p95|)
 
-All limits are rounded to a few significant figures (see nice_number).
+Shapes are read from explicit config keys if present ('median_floor_zero',
+'median_symmetric', 'change_sign'), otherwise inferred from the existing
+fixed limits in CMIP6_VARIABLE_CONFIG:
+    vmin_median == 0                 -> floor zero
+    vmin_change == 0                 -> change_sign 'positive'
+    vmax_change == 0                 -> change_sign 'negative'
+
+All automatic limits are rounded to 2 significant figures (see nice_number).
 
 Fixed-limit overrides (config keys 'median_limits' / 'change_limits')
 ---------------------------------------------------------------------
@@ -56,21 +70,28 @@ def _get_land_regions():
             _land_regions = regionmask.defined_regions.natural_earth_v5_0_0.land_50
         except Exception as e:
             raise RuntimeError(
-                "Could not load Natural Earth land polygons for the land mask "
-                f"({type(e).__name__}: {e}). regionmask downloads them on first use; "
-                "pre-fetch once from a node with internet access (see "
-                "_get_land_regions docstring), or run with --no-land-mask."
+                "Could not load Natural Earth land polygons for the color-limit "
+                f"land mask ({type(e).__name__}: {e}). regionmask downloads them on "
+                "first use; pre-fetch once from a node with internet access (see "
+                "_get_land_regions docstring), or run build_ensemble_medians.py "
+                "with --limits config to use the fixed config limits instead."
             ) from e
     return _land_regions
 
 
-def mask_to_land(da):
-    """Return `da` with NaN over ocean. The land mask is built once per grid."""
+def _land_mask(da):
+    """Boolean (lat, lon) land mask for da's grid, built once per grid."""
     key = (da.lat.size, da.lon.size,
            round(float(da.lat[0]), 4), round(float(da.lon[0]), 4))
     if key not in _mask_cache:
         _mask_cache[key] = _get_land_regions().mask(da.lon, da.lat).notnull()
-    return da.where(_mask_cache[key])
+    return _mask_cache[key]
+
+
+def land_values(da):
+    """1-D array of finite land values of da. Does not modify da."""
+    v = np.asarray(da.where(_land_mask(da)).values).ravel()
+    return v[np.isfinite(v)]
 
 
 def nice_number(x, sig=2):
@@ -81,38 +102,65 @@ def nice_number(x, sig=2):
     return float(np.round(x, digits))
 
 
-def _finite(da):
-    v = np.asarray(da.values).ravel()
-    return v[np.isfinite(v)]
+# =============================================================================
+# SHAPE RESOLUTION (explicit config keys first, else inferred)
+# =============================================================================
 
+def resolve_median_shape(config):
+    """Return 'symmetric', 'floor_zero', or 'default' for the median panels."""
+    if config.get("median_symmetric"):
+        return "symmetric"
+    if "median_floor_zero" in config:
+        return "floor_zero" if config["median_floor_zero"] else "default"
+    return "floor_zero" if config.get("vmin_median") == 0 else "default"
+
+
+def resolve_change_sign(config):
+    """Return 'positive', 'negative', or None for the change panels."""
+    if "change_sign" in config:
+        return config["change_sign"]
+    if config.get("vmin_change") == 0:
+        return "positive"
+    if config.get("vmax_change") == 0:
+        return "negative"
+    return None
+
+
+# =============================================================================
+# AUTOMATIC LIMITS
+# =============================================================================
 
 def _auto_median_limits(fields, config, pct=(5, 95)):
     """
     One (vmin, vmax) for the median panels of a variable.
 
-    fields : list of land-masked (lat, lon) DataArrays (historical plus every
-             scenario/period future median field)
+    fields : list of global (lat, lon) DataArrays (historical plus every
+             scenario/period future median field). Land values are
+             extracted internally.
     """
-    vals = np.concatenate([_finite(f) for f in fields])
+    vals = np.concatenate([land_values(f) for f in fields])
     if vals.size == 0:
         raise ValueError("No finite land values found for median limits")
     p_lo, p_hi = np.percentile(vals, pct)
-    if config.get("median_symmetric"):
+    shape = resolve_median_shape(config)
+    if shape == "symmetric":
         lim = nice_number(max(abs(p_lo), abs(p_hi)))
         return -lim, lim
-    lo = 0.0 if config.get("median_floor_zero") else nice_number(p_lo)
+    lo = 0.0 if shape == "floor_zero" else nice_number(p_lo)
     hi = nice_number(p_hi)
     if hi <= lo:
         hi = nice_number(float(np.max(vals)))
+    if hi <= lo:  # field is constant on land; give matplotlib a nonzero range
+        hi = lo + 1.0
     return lo, hi
 
 
 def _auto_change_limits(field, config, pct=(5, 95)):
     """(vmin, vmax) for one change panel, from land-only values."""
-    vals = _finite(field)
+    vals = land_values(field)
     if vals.size == 0:
         raise ValueError("No finite land values found for change limits")
-    sign = config.get("change_sign")
+    sign = resolve_change_sign(config)
     p_lo, p_hi = np.percentile(vals, pct)
 
     if sign == "positive":
@@ -126,6 +174,8 @@ def _auto_change_limits(field, config, pct=(5, 95)):
     # Degenerate (e.g. sparse count variable where p95 is 0): use the extreme.
     if lo == hi or (sign == "positive" and hi <= 0) or (sign == "negative" and lo >= 0):
         ext = nice_number(float(np.max(np.abs(vals))))
+        if ext == 0:  # no change anywhere on land
+            ext = 1.0
         lo, hi = {"positive": (0.0, ext), "negative": (-ext, 0.0)}.get(sign, (-ext, ext))
     return lo, hi
 

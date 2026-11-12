@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N cmip6_stage2
+#PBS -A NRIS0001
+#PBS -q casper
+#PBS -l select=1:ncpus=1:mem=40GB
+#PBS -l walltime=12:00:00
+#PBS -j oe
+
+module load conda
+conda activate earth
+
+cd /glade/u/home/jsallen/projects/tnc_2025/climate_risk_mapper/cmip6
+INTER=/glade/derecho/scratch/rmccrary/TNC/cmip6_model_intermediates
+VARS="cdd cdd65 cwd fd gsl hd30 hd35 hd40 hd42 hd45 hd50 hdd65 hi hi35 hi37 hi39 hi41 hurs id pr r20mm r50mm rx1day rx5day sd sdii spei12 tas tasmax tasmin tnn tr tr23 tr26 tr32 tx84rr txx wbt wbt25 wbt27 wbt29 wbt31 wd wsdi"
+mkdir -p logs
+
+for v in $VARS; do
+  python3 build_ensemble_medians.py --variable $v --intermediate-dir $INTER > logs/stage2_$v.log 2>&1
+done

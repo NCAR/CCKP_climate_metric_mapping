@@ -122,6 +122,17 @@ python3 build_ensemble_medians.py --variable tas --scenarios ssp245 ssp585 --per
 | `--models` | all models with a historical file | Restrict the ensemble (applies to every variable) |
 | `--intermediate-dir` | `./cmip6_model_intermediates` | Stage 1 base dir |
 | `--output-dir` | `./cmip6_ensemble_medians` | Output base dir |
+| `--limits` | `auto` | `auto`: land-only 5th-95th percentile color limits; `config`: fixed `vmin_*`/`vmax_*` from the config |
+
+Output data are global (land and ocean). No land mask is applied to the NetCDF fields; the maps hide the ocean with a cartopy ocean layer. Each NetCDF carries `spatial_coverage = "global (land and ocean); no land mask applied to data"`, and the build prints the missing-value fraction of every field it writes (expect ~0, warns above 0.10).
+
+With `--limits auto`, the land mask is used only to choose color ranges. The median-panel range is pooled over the historical field and all 8 scenario/period futures, so it is the same whether or not `--scenarios`/`--periods` restrict what gets written (all 8 are still computed). Change-panel ranges are set per plot. Range shapes come from the config: `median_floor_zero`, `median_symmetric`, `change_sign`, or, if absent, are inferred from the fixed limits (`vmin_median == 0` floors at zero; `vmin_change == 0` is positive-only; `vmax_change == 0` is negative-only). Pin either range with `median_limits` / `change_limits` = `(lo, hi)`, using `None` for a side to keep it automatic. See `cmip6_plot_limits.py`.
+
+`--limits auto` needs regionmask's Natural Earth land polygons. Fetch them once from a node with internet access:
+
+```bash
+python3 -c "import regionmask; regionmask.defined_regions.natural_earth_v5_0_0.land_50"
+```
 
 Per scenario and period, outputs are:
 - `<var>_<scenario>_<midcentury|endcentury>_ensemble_median_map.png` (three-panel map)
@@ -137,6 +148,7 @@ Models are discovered from historical files only. If a discovered model lacks a 
 | `cmip6_ensemble_stacking.py` | Stacks Stage 1 fields along a `model` dimension, computes ensemble medians |
 | `cmip6_risk_mapper.py` | Three-panel plotting and NetCDF output; `resolve_cmap()` |
 | `cmip6_model_diagnostic_plots.py` | 2x3 per-model diagnostic figure |
+| `cmip6_plot_limits.py` | Automatic color limits from land-only percentiles (Stage 2) |
 | `cmip6_variable_config.py` | Per-variable long name, units, colormaps, and color ranges |
 
 ## Adding or tuning a variable

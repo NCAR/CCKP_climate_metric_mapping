@@ -405,6 +405,7 @@ CMIP6_VARIABLE_CONFIG = {
         'cmap_median': 'Spectral',
         'vmin_median': -3.5,
         'vmax_median': 3.5,
+        'median_symmetric': True,  # auto limits (Stage 2): centered on 0
         'cmap_change': 'RdYlBu_r',
         'vmin_change': -1.5, # PLACEHOLDER
         'vmax_change': 1.5,  # PLACEHOLDER

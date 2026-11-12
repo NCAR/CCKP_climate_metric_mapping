@@ -1,0 +1,107 @@
+/glade/work/jsallen/projects/tnc_2025/climate_risk_mapper/cmip6/cmip6_plot_limits.py:70: UserWarning: `land_50` of `natural_earth_v4_1_0` and `natural_earth_v5_0_0` does not quite extend to 90°S - it's recommended to use `natural_earth_v5_1_2` instead. See https://github.com/regionmask/regionmask/issues/487
+  _land_regions = regionmask.defined_regions.natural_earth_v5_0_0.land_50
+Discovered 24 models in /glade/derecho/scratch/rmccrary/TNC/cmip6_model_intermediates/hd30
+Models: access-cm2-r1i1p1f1, access-esm1-5-r1i1p1f1, bcc-csm2-mr-r1i1p1f1, canesm5-r1i1p1f1, cmcc-esm2-r1i1p1f1, cnrm-cm6-1-r1i1p1f2, cnrm-esm2-1-r1i1p1f2, ec-earth3-r1i1p1f1, ec-earth3-veg-lr-r1i1p1f1, fgoals-g3-r3i1p1f1, gfdl-esm4-r1i1p1f1, giss-e2-1-g-r1i1p1f2, inm-cm4-8-r1i1p1f1, inm-cm5-0-r1i1p1f1, ipsl-cm6a-lr-r1i1p1f1, kace-1-0-g-r1i1p1f1, miroc-es2l-r1i1p1f2, miroc6-r1i1p1f1, mpi-esm1-2-hr-r1i1p1f1, mpi-esm1-2-lr-r1i1p1f1, mri-esm2-0-r1i1p1f1, noresm2-lm-r1i1p1f1, noresm2-mm-r1i1p1f1, ukesm1-0-ll-r1i1p1f2
+
+Stacking historical fields across all models...
+  Stacked 24 models
+
+Total ensemble median plots: 8
+
+Computing ensemble medians for 8 scenario/period combinations...
+  Median color range (land 5-95th pct, pooled): (0.0, 340.0)
+
+[1/8] hd30_ssp126_midcentury
+  Change color range (land 5-95th pct): (0.0, 63.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp126_midcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp126_midcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp126_midcentury_ensemble_median_map.png
+[2/8] hd30_ssp126_endcentury
+  Change color range (land 5-95th pct): (0.0, 66.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp126_endcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp126_endcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp126_endcentury_ensemble_median_map.png
+[3/8] hd30_ssp245_midcentury
+  Change color range (land 5-95th pct): (0.0, 81.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp245_midcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp245_midcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp245_midcentury_ensemble_median_map.png
+[4/8] hd30_ssp245_endcentury
+  Change color range (land 5-95th pct): (0.0, 110.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp245_endcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp245_endcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp245_endcentury_ensemble_median_map.png
+[5/8] hd30_ssp370_midcentury
+  Change color range (land 5-95th pct): (0.0, 95.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp370_midcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp370_midcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp370_midcentury_ensemble_median_map.png
+[6/8] hd30_ssp370_endcentury
+  Change color range (land 5-95th pct): (0.0, 150.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp370_endcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp370_endcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp370_endcentury_ensemble_median_map.png
+[7/8] hd30_ssp585_midcentury
+  Change color range (land 5-95th pct): (0.0, 110.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp585_midcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp585_midcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp585_midcentury_ensemble_median_map.png
+[8/8] hd30_ssp585_endcentury
+  Change color range (land 5-95th pct): (0.0, 180.0)
+
+Creating CMIP6 risk map figure: cmip6_ensemble_medians/hd30/hd30_ssp585_endcentury_ensemble_median_map.png
+  Figure saved successfully
+
+Creating CMIP6 output NetCDF: cmip6_ensemble_medians/hd30/hd30_ssp585_endcentury_ensemble_median.nc
+  Successfully saved NetCDF file
+  Variables: ['historical', 'future', 'change']
+  Missing fraction (hist/future/change): 0.000 / 0.000 / 0.000
+  OK    hd30_ssp585_endcentury_ensemble_median_map.png
+
+======================================================================
+ENSEMBLE MEDIAN BUILD COMPLETE -- hd30
+======================================================================
+Succeeded: 8/8
+======================================================================

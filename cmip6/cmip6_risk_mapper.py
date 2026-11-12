@@ -168,7 +168,8 @@ def add_colorbar(fig, ax, mappable, label):
 
 def create_cmip6_risk_map(historical_field, future_field, change_field, config,
                            output_path, future_label, historical_period,
-                           future_period, scenario):
+                           future_period, scenario,
+                           median_lims=None, change_lims=None):
     """
     Create a three-panel figure: (a) historical median, (b) future period
     median, (c) change (future - historical).
@@ -188,6 +189,9 @@ def create_cmip6_risk_map(historical_field, future_field, change_field, config,
         (start_year, end_year) for each period, used in titles
     scenario : str
         SSP scenario code, e.g. 'ssp245', used in panel (b)/(c) titles
+    median_lims, change_lims : (vmin, vmax) tuple, optional
+        Color limits for panels (a)/(b) and (c). If None, the fixed
+        vmin_*/vmax_* values from config are used.
 
     Returns
     -------
@@ -195,9 +199,14 @@ def create_cmip6_risk_map(historical_field, future_field, change_field, config,
     """
     print(f"\nCreating CMIP6 risk map figure: {output_path}")
 
+    if median_lims is None:
+        median_lims = (config['vmin_median'], config['vmax_median'])
+    if change_lims is None:
+        change_lims = (config['vmin_change'], config['vmax_change'])
+
     vis_data = [historical_field, future_field, change_field]
-    vmins = [config['vmin_median'], config['vmin_median'], config['vmin_change']]
-    vmaxs = [config['vmax_median'], config['vmax_median'], config['vmax_change']]
+    vmins = [median_lims[0], median_lims[0], change_lims[0]]
+    vmaxs = [median_lims[1], median_lims[1], change_lims[1]]
     cmaps_list = [
         resolve_cmap(config['cmap_median']),
         resolve_cmap(config['cmap_median']),
@@ -414,6 +423,7 @@ def create_cmip6_netcdf(historical_field, future_field, change_field, config,
         'future_period_label': future_label,
         'ensemble_statistic': ensemble_statistic,
         'spatial_resolution': '0.25 degrees',
+        'spatial_coverage': 'global (land and ocean); no land mask applied to data',
         'conventions': 'CF-1.8',
         'comment': 'Change is defined as future minus historical.',
     }
